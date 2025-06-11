@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Presenças - Estudo Bíblico</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-2">
+                <i data-lucide="book-open" class="w-8 h-8 text-blue-600"></i>
+                Controle de Presenças - Estudo Bíblico
+            </h1>
+            <p class="text-gray-600 mt-2">Gerencie membros e chamadas do seu estudo bíblico</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white rounded-lg shadow-md mb-8">
+            <nav class="flex border-b">
+                <button onclick="showTab('membros')" id="tab-membros"
+                    class="tab-button px-6 py-4 font-medium text-blue-600 border-b-2 border-blue-600">
+                    <i data-lucide="users" class="w-5 h-5 inline mr-2"></i>
+                    Membros
+                </button>
+                <button onclick="showTab('chamadas')" id="tab-chamadas"
+                    class="tab-button px-6 py-4 font-medium text-gray-500 hover:text-gray-700">
+                    <i data-lucide="calendar-check" class="w-5 h-5 inline mr-2"></i>
+                    Chamadas
+                </button>
+                <button onclick="showTab('ranking')" id="tab-ranking"
+                    class="tab-button px-6 py-4 font-medium text-gray-500 hover:text-gray-700">
+                    <i data-lucide="trophy" class="w-5 h-5 inline mr-2"></i>
+                    Ranking
+                </button>
+            </nav>
+        </div>
+
+        <!-- Membros Tab -->
+        <div id="membros-tab" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Adicionar Membro -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="user-plus" class="w-5 h-5 text-green-600"></i>
+                            Adicionar Membro
+                        </h2>
+                        <form id="form-membro" onsubmit="adicionarMembro(event)">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nome do Membro</label>
+                                <input type="text" id="nome-membro" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Digite o nome completo">
+                            </div>
+                            <button type="submit"
+                                class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+                                <i data-lucide="plus" class="w-4 h-4 inline mr-2"></i>
+                                Adicionar Membro
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Lista de Membros -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="users" class="w-5 h-5 text-blue-600"></i>
+                            Lista de Membros
+                            <span id="total-membros"
+                                class="bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded-full ml-auto">0</span>
+                        </h2>
+                        <div id="lista-membros" class="space-y-2">
+                            <!-- Membros serão carregados aqui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chamadas Tab -->
+        <div id="chamadas-tab" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Nova Chamada -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="calendar-plus" class="w-5 h-5 text-green-600"></i>
+                            Nova Chamada
+                        </h2>
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-600 mb-4">Criar uma nova chamada com a data e hora atual</p>
+                            <button onclick="criarChamada()"
+                                class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200">
+                                <i data-lucide="plus" class="w-4 h-4 inline mr-2"></i>
+                                Criar Chamada
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Marcar Presenças -->
+                    <div id="form-presencas" class="bg-white rounded-lg shadow-md p-6 mt-6 hidden">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="check-square" class="w-5 h-5 text-blue-600"></i>
+                            Marcar Presenças
+                        </h3>
+                        <div id="lista-membros-presenca" class="space-y-2 mb-4">
+                            <!-- Lista de membros para marcar presença -->
+                        </div>
+                        <button onclick="salvarPresencas()"
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+                            <i data-lucide="save" class="w-4 h-4 inline mr-2"></i>
+                            Salvar Presenças
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de Chamadas -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="calendar-check" class="w-5 h-5 text-blue-600"></i>
+                            Histórico de Chamadas
+                            <span id="total-chamadas"
+                                class="bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded-full ml-auto">0</span>
+                        </h2>
+                        <div id="lista-chamadas" class="space-y-4">
+                            <!-- Chamadas serão carregadas aqui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ranking Tab -->
+        <div id="ranking-tab" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                    <i data-lucide="trophy" class="w-5 h-5 text-yellow-600"></i>
+                    Top 10 - Membros Mais Assíduos
+                </h2>
+                <div id="ranking-membros" class="space-y-3">
+                    <!-- Ranking será carregado aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg p-6 flex items-center gap-3">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span class="text-gray-700">Carregando...</span>
+        </div>
+    </div>
+
+    <script>
+        // Aguardar carregamento completo antes de inicializar ícones
+        document.addEventListener('DOMContentLoaded', function () {
+            // Verificar se lucide está disponível
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            // Inicializar aplicação
+            showTab('membros');
+        });
+
+        // Configuração da API - Altere a URL base conforme necessário
+        const API_BASE = 'https://apichamada.igrejarestitui.com.br/'; // Altere para a URL da sua API
+
+        let membros = [];
+        let chamadas = [];
+        let chamadaAtual = null;
+
+        // Navegação entre tabs
+        function showTab(tabName) {
+            // Esconder todas as tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+
+            // Remover classe ativa de todos os botões
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                btn.classList.add('text-gray-500', 'hover:text-gray-700');
+            });
+
+            // Mostrar tab selecionada
+            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+
+            // Ativar botão correspondente
+            const activeBtn = document.getElementById(`tab-${tabName}`);
+            activeBtn.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+            activeBtn.classList.remove('text-gray-500', 'hover:text-gray-700');
+
+            // Carregar dados específicos da tab
+            if (tabName === 'membros') {
+                carregarMembros();
+            } else if (tabName === 'chamadas') {
+                carregarChamadas();
+            } else if (tabName === 'ranking') {
+                carregarRanking();
+            }
+        }
+
+        // Funções de loading
+        function showLoading() {
+            document.getElementById('loading').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        // Função para fazer requisições à API
+        async function apiRequest(endpoint, options = {}) {
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('Erro na requisição:', error);
+                alert(`Erro na requisição: ${error.message}`);
+                throw error;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Carregar membros
+        async function carregarMembros() {
+            try {
+                membros = await apiRequest('/membros');
+                renderizarMembros();
+            } catch (error) {
+                console.error('Erro ao carregar membros:', error);
+            }
+        }
+
+        // Renderizar lista de membros
+        function renderizarMembros() {
+            const container = document.getElementById('lista-membros');
+            const totalElement = document.getElementById('total-membros');
+
+            totalElement.textContent = membros.length;
+
+            if (membros.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i data-lucide="users" class="w-12 h-12 mx-auto mb-4 text-gray-300"></i>
+                        <p>Nenhum membro cadastrado ainda</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = membros.map(membro => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
+                            </div>
+                            <span class="font-medium text-gray-800">${membro.nome}</span>
+                        </div>
+                        <span class="text-sm text-gray-500">ID: ${membro.id}</span>
+                    </div>
+                `).join('');
+            }
+
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        // Adicionar novo membro
+        async function adicionarMembro(event) {
+            event.preventDefault();
+            const nome = document.getElementById('nome-membro').value.trim();
+
+            if (!nome) {
+                alert('Por favor, digite o nome do membro');
+                return;
+            }
+
+            try {
+                const novoMembro = await apiRequest('/membros', {
+                    method: 'POST',
+                    body: JSON.stringify({ nome })
+                });
+
+                membros.push(novoMembro);
+                renderizarMembros();
+                document.getElementById('form-membro').reset();
+
+                alert('Membro adicionado com sucesso!');
+            } catch (error) {
+                console.error('Erro ao adicionar membro:', error);
+            }
+        }
+
+        // Carregar chamadas
+        async function carregarChamadas() {
+            try {
+                chamadas = await apiRequest('/chamadas');
+                renderizarChamadas();
+            } catch (error) {
+                console.error('Erro ao carregar chamadas:', error);
+            }
+        }
+
+        // Renderizar lista de chamadas
+        function renderizarChamadas() {
+            const container = document.getElementById('lista-chamadas');
+            const totalElement = document.getElementById('total-chamadas');
+
+            totalElement.textContent = chamadas.length;
+
+            if (chamadas.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i data-lucide="calendar-check" class="w-12 h-12 mx-auto mb-4 text-gray-300"></i>
+                        <p>Nenhuma chamada realizada ainda</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = chamadas.map(chamada => {
+                    const data = new Date(chamada.data);
+                    const dataFormatada = data.toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    return `
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="calendar" class="w-5 h-5 text-blue-600"></i>
+                                    <span class="font-semibold text-gray-800">${dataFormatada}</span>
+                                </div>
+                                <span class="bg-green-100 text-green-800 text-sm px-2 py-1 rounded-full">
+                                    ${chamada.presencas?.length || 0} presentes
+                                </span>
+                            </div>
+                            ${chamada.presencas && chamada.presencas.length > 0 ? `
+                                <div class="flex flex-wrap gap-2">
+                                    ${chamada.presencas.map(presenca => `
+                                        <span class="bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded">
+                                            ${presenca.membro.nome}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            ` : '<p class="text-gray-500 text-sm">Nenhuma presença registrada</p>'}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        // Criar nova chamada
+        async function criarChamada() {
+            try {
+                if (membros.length === 0) {
+                    await carregarMembros();
+                }
+
+                if (membros.length === 0) {
+                    alert('É necessário ter membros cadastrados antes de criar uma chamada.');
+                    showTab('membros');
+                    return;
+                }
+
+                const novaChamada = await apiRequest('/chamadas', {
+                    method: 'POST'
+                });
+
+                chamadaAtual = novaChamada;
+                mostrarFormPresencas();
+
+                alert('Nova chamada criada! Agora marque as presenças.');
+            } catch (error) {
+                console.error('Erro ao criar chamada:', error);
+            }
+        }
+
+        // Mostrar formulário de presenças
+        function mostrarFormPresencas() {
+            const formPresencas = document.getElementById('form-presencas');
+            const listaMembros = document.getElementById('lista-membros-presenca');
+
+            formPresencas.classList.remove('hidden');
+
+            listaMembros.innerHTML = membros.map(membro => `
+                <label class="flex items-center gap-3 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
+                    <input type="checkbox" value="${membro.id}" class="w-4 h-4 text-blue-600 rounded">
+                    <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i data-lucide="user" class="w-3 h-3 text-blue-600"></i>
+                    </div>
+                    <span class="font-medium text-gray-800">${membro.nome}</span>
+                </label>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        // Salvar presenças
+        async function salvarPresencas() {
+            if (!chamadaAtual) {
+                alert('Nenhuma chamada ativa para salvar presenças.');
+                return;
+            }
+
+            const checkboxes = document.querySelectorAll('#lista-membros-presenca input[type="checkbox"]:checked');
+            const membrosPresentes = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (membrosPresentes.length === 0) {
+                if (!confirm('Nenhum membro foi marcado como presente. Deseja continuar?')) {
+                    return;
+                }
+            }
+
+            try {
+                await apiRequest(`/chamadas/${chamadaAtual.id}/presencas`, {
+                    method: 'POST',
+                    body: JSON.stringify({ membros: membrosPresentes })
+                });
+
+                document.getElementById('form-presencas').classList.add('hidden');
+                chamadaAtual = null;
+                carregarChamadas();
+
+                alert('Presenças salvas com sucesso!');
+            } catch (error) {
+                console.error('Erro ao salvar presenças:', error);
+            }
+        }
+
+        // Carregar ranking
+        async function carregarRanking() {
+            try {
+                const ranking = await apiRequest('/membros/top');
+                renderizarRanking(ranking);
+            } catch (error) {
+                console.error('Erro ao carregar ranking:', error);
+            }
+        }
+
+        // Renderizar ranking
+        function renderizarRanking(ranking) {
+            const container = document.getElementById('ranking-membros');
+
+            if (ranking.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i data-lucide="trophy" class="w-12 h-12 mx-auto mb-4 text-gray-300"></i>
+                        <p>Nenhum dado de presença disponível ainda</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = ranking.map((membro, index) => {
+                    const posicao = index + 1;
+                    let medalha = '';
+                    let corFundo = 'bg-gray-50';
+
+                    if (posicao === 1) {
+                        medalha = '🥇';
+                        corFundo = 'bg-yellow-50 border-yellow-200';
+                    } else if (posicao === 2) {
+                        medalha = '🥈';
+                        corFundo = 'bg-gray-100 border-gray-300';
+                    } else if (posicao === 3) {
+                        medalha = '🥉';
+                        corFundo = 'bg-orange-50 border-orange-200';
+                    }
+
+                    return `
+                        <div class="flex items-center justify-between p-4 ${corFundo} rounded-lg border hover:shadow-sm transition duration-200">
+                            <div class="flex items-center gap-4">
+                                <span class="text-2xl font-bold text-gray-400 w-8">${medalha || posicao + 'º'}</span>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <i data-lucide="user" class="w-5 h-5 text-blue-600"></i>
+                                    </div>
+                                    <span class="font-semibold text-gray-800">${membro.nome}</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-blue-600">${membro.totalPresencas}</div>
+                                <div class="text-sm text-gray-500">presenças</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        // Inicializar aplicação
+        document.addEventListener('DOMContentLoaded', function () {
+            showTab('membros');
+        });
+    </script>
+</body>
+
+</html>
